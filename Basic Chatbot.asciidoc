@@ -1,0 +1,466 @@
++*In[1]:*+
+[source, ipython3]
+----
+import requests
+
+class Stock:
+    def __init__(self, symbol, quantity):
+        self.symbol = symbol
+        self.quantity = quantity
+        self.current_price = self.get_current_price()
+        self.purchase_price = self.current_price  # For simplicity, assume purchase price is the same as current price
+
+    def get_current_price(self):
+        api_key = 'your_api_key'  # Replace 'your_api_key' with your actual API key
+        url = f'https://api.example.com/stock/{self.symbol}/quote?apikey={api_key}'  # Example API endpoint
+        response = requests.get(url)
+        data = response.json()
+        return data['latestPrice']
+
+    def update_price(self):
+        self.current_price = self.get_current_price()
+
+    def calculate_profit_loss(self):
+        return (self.current_price - self.purchase_price) * self.quantity
+
+class Portfolio:
+    def __init__(self):
+        self.stocks = []
+
+    def add_stock(self, symbol, quantity):
+        stock = Stock(symbol, quantity)
+        self.stocks.append(stock)
+
+    def remove_stock(self, symbol):
+        self.stocks = [stock for stock in self.stocks if stock.symbol != symbol]
+
+    def update_prices(self):
+        for stock in self.stocks:
+            stock.update_price()
+
+    def calculate_total_profit_loss(self):
+        total_profit_loss = 0
+        for stock in self.stocks:
+            total_profit_loss += stock.calculate_profit_loss()
+        return total_profit_loss
+
+# Example usage:
+portfolio = Portfolio()
+portfolio.add_stock('AAPL', 10)
+portfolio.add_stock('GOOGL', 5)
+
+portfolio.update_prices()
+
+print("Current Portfolio:")
+for stock in portfolio.stocks:
+    print(f"Symbol: {stock.symbol}, Quantity: {stock.quantity}, Current Price: {stock.current_price}")
+
+print(f"Total Profit/Loss: {portfolio.calculate_total_profit_loss()} USD")
+
+----
+
+
++*Out[1]:*+
+----
+
+    ---------------------------------------------------------------------------
+
+    gaierror                                  Traceback (most recent call last)
+
+    File C:\anaconda\Lib\site-packages\urllib3\connection.py:174, in HTTPConnection._new_conn(self)
+        173 try:
+    --> 174     conn = connection.create_connection(
+        175         (self._dns_host, self.port), self.timeout, **extra_kw
+        176     )
+        178 except SocketTimeout:
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\util\connection.py:72, in create_connection(address, timeout, source_address, socket_options)
+         68     return six.raise_from(
+         69         LocationParseError(u"'%s', label empty or too long" % host), None
+         70     )
+    ---> 72 for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+         73     af, socktype, proto, canonname, sa = res
+    
+
+    File C:\anaconda\Lib\socket.py:962, in getaddrinfo(host, port, family, type, proto, flags)
+        961 addrlist = []
+    --> 962 for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+        963     af, socktype, proto, canonname, sa = res
+    
+
+    gaierror: [Errno 11001] getaddrinfo failed
+
+    
+    During handling of the above exception, another exception occurred:
+    
+
+    NewConnectionError                        Traceback (most recent call last)
+
+    File C:\anaconda\Lib\site-packages\urllib3\connectionpool.py:714, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, **response_kw)
+        713 # Make the request on the httplib connection object.
+    --> 714 httplib_response = self._make_request(
+        715     conn,
+        716     method,
+        717     url,
+        718     timeout=timeout_obj,
+        719     body=body,
+        720     headers=headers,
+        721     chunked=chunked,
+        722 )
+        724 # If we're going to release the connection in ``finally:``, then
+        725 # the response doesn't need to know about the connection. Otherwise
+        726 # it will also try to release it and we'll have a double-release
+        727 # mess.
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\connectionpool.py:403, in HTTPConnectionPool._make_request(self, conn, method, url, timeout, chunked, **httplib_request_kw)
+        402 try:
+    --> 403     self._validate_conn(conn)
+        404 except (SocketTimeout, BaseSSLError) as e:
+        405     # Py2 raises this as a BaseSSLError, Py3 raises it as socket timeout.
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\connectionpool.py:1053, in HTTPSConnectionPool._validate_conn(self, conn)
+       1052 if not getattr(conn, "sock", None):  # AppEngine might not have  `.sock`
+    -> 1053     conn.connect()
+       1055 if not conn.is_verified:
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\connection.py:363, in HTTPSConnection.connect(self)
+        361 def connect(self):
+        362     # Add certificate verification
+    --> 363     self.sock = conn = self._new_conn()
+        364     hostname = self.host
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\connection.py:186, in HTTPConnection._new_conn(self)
+        185 except SocketError as e:
+    --> 186     raise NewConnectionError(
+        187         self, "Failed to establish a new connection: %s" % e
+        188     )
+        190 return conn
+    
+
+    NewConnectionError: <urllib3.connection.HTTPSConnection object at 0x0000028E772CBFD0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed
+
+    
+    During handling of the above exception, another exception occurred:
+    
+
+    MaxRetryError                             Traceback (most recent call last)
+
+    File C:\anaconda\Lib\site-packages\requests\adapters.py:486, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+        485 try:
+    --> 486     resp = conn.urlopen(
+        487         method=request.method,
+        488         url=url,
+        489         body=request.body,
+        490         headers=request.headers,
+        491         redirect=False,
+        492         assert_same_host=False,
+        493         preload_content=False,
+        494         decode_content=False,
+        495         retries=self.max_retries,
+        496         timeout=timeout,
+        497         chunked=chunked,
+        498     )
+        500 except (ProtocolError, OSError) as err:
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\connectionpool.py:798, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, **response_kw)
+        796     e = ProtocolError("Connection aborted.", e)
+    --> 798 retries = retries.increment(
+        799     method, url, error=e, _pool=self, _stacktrace=sys.exc_info()[2]
+        800 )
+        801 retries.sleep()
+    
+
+    File C:\anaconda\Lib\site-packages\urllib3\util\retry.py:592, in Retry.increment(self, method, url, response, error, _pool, _stacktrace)
+        591 if new_retry.is_exhausted():
+    --> 592     raise MaxRetryError(_pool, url, error or ResponseError(cause))
+        594 log.debug("Incremented Retry for (url='%s'): %r", url, new_retry)
+    
+
+    MaxRetryError: HTTPSConnectionPool(host='api.example.com', port=443): Max retries exceeded with url: /stock/AAPL/quote?apikey=your_api_key (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x0000028E772CBFD0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))
+
+    
+    During handling of the above exception, another exception occurred:
+    
+
+    ConnectionError                           Traceback (most recent call last)
+
+    Cell In[1], line 46
+         44 # Example usage:
+         45 portfolio = Portfolio()
+    ---> 46 portfolio.add_stock('AAPL', 10)
+         47 portfolio.add_stock('GOOGL', 5)
+         49 portfolio.update_prices()
+    
+
+    Cell In[1], line 28, in Portfolio.add_stock(self, symbol, quantity)
+         27 def add_stock(self, symbol, quantity):
+    ---> 28     stock = Stock(symbol, quantity)
+         29     self.stocks.append(stock)
+    
+
+    Cell In[1], line 7, in Stock.__init__(self, symbol, quantity)
+          5 self.symbol = symbol
+          6 self.quantity = quantity
+    ----> 7 self.current_price = self.get_current_price()
+          8 self.purchase_price = self.current_price
+    
+
+    Cell In[1], line 13, in Stock.get_current_price(self)
+         11 api_key = 'your_api_key'  # Replace 'your_api_key' with your actual API key
+         12 url = f'https://api.example.com/stock/{self.symbol}/quote?apikey={api_key}'  # Example API endpoint
+    ---> 13 response = requests.get(url)
+         14 data = response.json()
+         15 return data['latestPrice']
+    
+
+    File C:\anaconda\Lib\site-packages\requests\api.py:73, in get(url, params, **kwargs)
+         62 def get(url, params=None, **kwargs):
+         63     r"""Sends a GET request.
+         64 
+         65     :param url: URL for the new :class:`Request` object.
+       (...)
+         70     :rtype: requests.Response
+         71     """
+    ---> 73     return request("get", url, params=params, **kwargs)
+    
+
+    File C:\anaconda\Lib\site-packages\requests\api.py:59, in request(method, url, **kwargs)
+         55 # By using the 'with' statement we are sure the session is closed, thus we
+         56 # avoid leaving sockets open which can trigger a ResourceWarning in some
+         57 # cases, and look like a memory leak in others.
+         58 with sessions.Session() as session:
+    ---> 59     return session.request(method=method, url=url, **kwargs)
+    
+
+    File C:\anaconda\Lib\site-packages\requests\sessions.py:589, in Session.request(self, method, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, proxies, hooks, stream, verify, cert, json)
+        584 send_kwargs = {
+        585     "timeout": timeout,
+        586     "allow_redirects": allow_redirects,
+        587 }
+        588 send_kwargs.update(settings)
+    --> 589 resp = self.send(prep, **send_kwargs)
+        591 return resp
+    
+
+    File C:\anaconda\Lib\site-packages\requests\sessions.py:703, in Session.send(self, request, **kwargs)
+        700 start = preferred_clock()
+        702 # Send the request
+    --> 703 r = adapter.send(request, **kwargs)
+        705 # Total elapsed time of the request (approximately)
+        706 elapsed = preferred_clock() - start
+    
+
+    File C:\anaconda\Lib\site-packages\requests\adapters.py:519, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+        515     if isinstance(e.reason, _SSLError):
+        516         # This branch is for urllib3 v1.22 and later.
+        517         raise SSLError(e, request=request)
+    --> 519     raise ConnectionError(e, request=request)
+        521 except ClosedPoolError as e:
+        522     raise ConnectionError(e, request=request)
+    
+
+    ConnectionError: HTTPSConnectionPool(host='api.example.com', port=443): Max retries exceeded with url: /stock/AAPL/quote?apikey=your_api_key (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x0000028E772CBFD0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))
+
+----
+
+
++*In[2]:*+
+[source, ipython3]
+----
+class Stock:
+    def __init__(self, symbol, quantity, purchase_price):
+        self.symbol = symbol
+        self.quantity = quantity
+        self.purchase_price = purchase_price
+        self.current_price = 0  # Placeholder for current price
+
+    def update_price(self, current_price):
+        self.current_price = current_price
+
+    def calculate_profit_loss(self):
+        return (self.current_price - self.purchase_price) * self.quantity
+
+class Portfolio:
+    def __init__(self):
+        self.stocks = []
+
+    def add_stock(self, stock):
+        self.stocks.append(stock)
+
+    def remove_stock(self, symbol):
+        self.stocks = [stock for stock in self.stocks if stock.symbol != symbol]
+
+    def update_prices(self, stock_prices):
+        for stock in self.stocks:
+            stock.update_price(stock_prices[stock.symbol])
+
+    def calculate_total_profit_loss(self):
+        total_profit_loss = 0
+        for stock in self.stocks:
+            total_profit_loss += stock.calculate_profit_loss()
+        return total_profit_loss
+
+# Example usage:
+portfolio = Portfolio()
+
+# Adding stocks to the portfolio
+stock1 = Stock('AAPL', 10, 150)  # Example: Apple Inc.
+stock2 = Stock('GOOGL', 5, 2000)  # Example: Alphabet Inc. (Google)
+portfolio.add_stock(stock1)
+portfolio.add_stock(stock2)
+
+# Simulating fetching current prices (can be replaced with real API calls)
+current_prices = {'AAPL': 160, 'GOOGL': 2100}
+
+# Updating stock prices in the portfolio
+portfolio.update_prices(current_prices)
+
+# Displaying current portfolio
+print("Current Portfolio:")
+for stock in portfolio.stocks:
+    print(f"Symbol: {stock.symbol}, Quantity: {stock.quantity}, Current Price: {stock.current_price}")
+
+# Calculating total profit/loss
+print(f"Total Profit/Loss: {portfolio.calculate_total_profit_loss()} USD")
+
+----
+
+
++*Out[2]:*+
+----
+Current Portfolio:
+Symbol: AAPL, Quantity: 10, Current Price: 160
+Symbol: GOOGL, Quantity: 5, Current Price: 2100
+Total Profit/Loss: 600 USD
+----
+
+
++*In[3]:*+
+[source, ipython3]
+----
+class Stock:
+    def __init__(self, symbol, quantity, purchase_price):
+        self.symbol = symbol
+        self.quantity = quantity
+        self.purchase_price = purchase_price
+        self.current_price = 0  # Placeholder for current price
+
+    def update_price(self, current_price):
+        self.current_price = current_price
+
+    def calculate_profit_loss(self):
+        return (self.current_price - self.purchase_price) * self.quantity
+
+class Portfolio:
+    def __init__(self):
+        self.stocks = []
+
+    def add_stock(self, stock):
+        self.stocks.append(stock)
+
+    def remove_stock(self, symbol):
+        self.stocks = [stock for stock in self.stocks if stock.symbol != symbol]
+
+    def update_prices(self, stock_prices):
+        for stock in self.stocks:
+            stock.update_price(stock_prices[stock.symbol])
+
+    def calculate_total_profit_loss(self):
+        total_profit_loss = 0
+        for stock in self.stocks:
+            total_profit_loss += stock.calculate_profit_loss()
+        return total_profit_loss
+
+# Example usage:
+portfolio = Portfolio()
+
+# Adding stocks to the portfolio
+stock1 = Stock('AAPL', 10, 150)  # Example: Apple Inc.
+stock2 = Stock('GOOGL', 5, 2000)  # Example: Alphabet Inc. (Google)
+portfolio.add_stock(stock1)
+portfolio.add_stock(stock2)
+
+# Simulating fetching current prices (can be replaced with real API calls)
+current_prices = {'AAPL': 160, 'GOOGL': 2100}
+
+# Updating stock prices in the portfolio
+portfolio.update_prices(current_prices)
+
+# Displaying current portfolio
+print("Current Portfolio:")
+for stock in portfolio.stocks:
+    print(f"Symbol: {stock.symbol}, Quantity: {stock.quantity}, Current Price: {stock.current_price}")
+
+# Calculating total profit/loss
+print(f"Total Profit/Loss: {portfolio.calculate_total_profit_loss()} USD")
+
+----
+
+
++*Out[3]:*+
+----
+Current Portfolio:
+Symbol: AAPL, Quantity: 10, Current Price: 160
+Symbol: GOOGL, Quantity: 5, Current Price: 2100
+Total Profit/Loss: 600 USD
+----
+
+
++*In[4]:*+
+[source, ipython3]
+----
+import nltk
+from nltk.chat.util import Chat, reflections
+
+# Define patterns and responses
+patterns = [
+    (r'hi|hello|hey', ['Hello!', 'Hi there!', 'Hey!']),
+    (r'how are you?', ["I'm doing well, thank you!", "I'm great, thanks for asking!"]),
+    (r'what is your name?', ["I'm a chatbot. You can call me Chatbot.", "I'm Chatbot, nice to meet you!"]),
+    (r'quit', ['Bye!', 'Goodbye!', 'Take care!']),
+]
+
+# Create a Chatbot
+chatbot = Chat(patterns, reflections)
+
+# Start chatting
+print("Welcome to Chatbot. Type 'quit' to exit.")
+while True:
+    user_input = input("You: ")
+    response = chatbot.respond(user_input)
+    print("Chatbot:", response)
+    if user_input.lower() == 'quit':
+        break
+
+----
+
+
++*Out[4]:*+
+----
+Welcome to Chatbot. Type 'quit' to exit.
+You: hy
+Chatbot: None
+You: hey
+Chatbot: Hey!
+You: how are you
+Chatbot: I'm great, thanks for asking!
+You: bye
+Chatbot: None
+You: what is your name?
+Chatbot: I'm a chatbot. You can call me Chatbot.
+You: quit
+Chatbot: Goodbye!
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+
+----
